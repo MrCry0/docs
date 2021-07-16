@@ -18,21 +18,23 @@ Terminology
 Root of trust - factory_ca.key / factory_ca.pem
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The PKI root of trust for your factory. You own the
-EC prime256v1 private key. The corresponding x509 certificate is shared
+The PKI root of trust for your factory. You own the private key
+(EC prime256v1 by default). The corresponding x509 certificate is shared
 with Foundries.io to define your root of trust.
 
-All mutual TLS certificates configured in your factory  must be signed
-by this keypair.
+All intermediate CA and mutual TLS certificates configured in your factory  must be signed
+by this keypair. In particular, the certificates listed below.
 
 .. _tls-crt:
 
 Server TLS Certificate - tls-crt
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The server TLS certificate keypair is used by the server to encrypt
-TLS communication with devices. The private key is owned by
-Foundries.io and the certificate is signed by the root of trust.
+This certificate along with its private key is used by Device Gateway
+during mTLS handshake/session setup.
+Specifically, they are used for Device Gateway identity verification by a device/client
+and a TLS session's symmetric key setup.
+The private key is owned by Foundries.io and the certificate is signed by the root of trust.
 
 .. _online-ca:
 
@@ -41,16 +43,17 @@ Foundries.io and the certificate is signed by the root of trust.
 
 In order for lmp-device-register to work, Foundries.io needs the
 ability to sign client certificates for devices. If enabled, the
-root of trust will sign a certificate that Foundries.io can use
+root of trust will sign an ``online-ca`` certificate that Foundries.io can use
 to sign client authentication certificates.
 
 .. _local-ca:
 
 "local-ca"
 ~~~~~~~~~~
-Optional keypair(s) that can be used by something like your
-manufacturing process sign client certificates for devices without
-needing access to Foundries.io.
+Optional pair(s) of a private key and intermediate CA certificate signed by the root CA that can be used by something like your
+manufacturing process sign client certificates for devices without needing access to Foundries.io.
+
+It is also known and referred as ``offline CA`` since a user owns its private key and keeps it "offline".
 
   .. figure:: /_static/ca_certs.png
      :align: center
@@ -72,6 +75,9 @@ note about this command:
 
 You can view the configured certificates with
 ``fioctl keys ca show --pretty``.
+
+The Factory PKI often interwoven with Device Manufacturing Process and Device Registration,
+you can find out more details on this topic in this guide :ref:`ref-factory-registration-ref`
 
 Under the hood
 ~~~~~~~~~~~~~~
